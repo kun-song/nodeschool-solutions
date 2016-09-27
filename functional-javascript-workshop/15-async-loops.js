@@ -14,19 +14,19 @@
  */
 function loadUsers(userIds, load, done) {
   const users = [];
-  let counter = 0;
-  for (let i = 0; i < userIds.length; i++) {
-    load(userIds[i], user => {
-      if (user != null) {
-        users[i] = user;  // 保证加载顺序
+  let counter = 0;  // 计数器
+  userIds.forEach((userId, index) => {
+    load(userId, user => {
+      if (user !== null) {
+        users[index] = user;  // index 保证加载顺序
       }
-      counter++;  // 计数器
 
-      if (counter === userIds.length) {  // 加载结束
+      counter++;  // 计数器
+      if(counter === userIds.length) {  // 加载结束
         done(users);
       }
-    });
-  }
+    })
+  });
 }
 
 module.exports = loadUsers;
