@@ -1,0 +1,100 @@
+'use strict';
+
+// 第三方模块
+// 从 .env 文件中加载环境变量，必须最先运行
+require('dotenv').config({ silent: true });
+const koa = require('koa');
+const bouncer = require('koa-bouncer');
+const nunjucksRender = require('koa-nunjucks-render');
+const debug = require('debug')('app:index');
+// 自定义模块
+const config = require('./config');
+const mw = require('./middleware');
+const belt = require('./belt');
+const cancan = require('./cancan');
+
+const bodyParser = require('koa-bodyparser');
+
+// const predb = require('./predb');
+
+const app = koa();
+app.poweredBy = false;
+app.proxy = config.TRUST_PROXY;
+
+app.use(bodyParser());
+
+// 模板配置
+const nunjucksOptions = {
+  ext: '.html',
+  noCache: config.NODE_ENV === 'development',
+  throwOnUndefined: false,
+  // globals are bindings we want to expose to all templates
+  globals: {
+    // let us use `can(USER, ACTION, TARGET)` authorization-checks in templates
+    can: cancan.can,
+    config
+  },
+  // filters are functions that we can pipe values to from nunjucks templates.
+  // e.g. {{ user.uname | md5 | toAvatarUrl }}
+  filters: {
+    json: x => JSON.stringify(x, null, '  '),
+    formatDate: belt.formatDate,
+    nl2br: belt.nl2br,
+    md5: belt.md5,
+    toAvatarUrl: belt.toAvatarUrl,
+    autolink: belt.autolink,
+  },
+};
+
+
+app.use(mw.ensureReferer());
+app.use(require('koa-helmet')());
+app.use(require('koa-compress')());
+app.use(require('koa-better-static')('public'));
+// 仅在测试时打印日志
+if (config.NODE_ENV !== 'test') {
+  app.use(require('koa-logger')());
+}
+app.use(require('koa-body')({ multipart: true }));
+app.use(mw.methodOverride());  // Must come after body parser
+app.use(mw.removeTrailingSlash());
+app.use(mw.wrapCurrUser());
+app.use(mw.wrapFlash('flash'));
+app.use(bouncer.middleware());
+app.use(mw.handleBouncerValidationError()); // Must come after bouncer.middleware()
+app.use(nunjucksRender('views', nunjucksOptions));
+
+// Provide a convience function for protecting our routes behind
+// our authorization rules. If authorization check fails, 404 response.
+//
+// Usage:
+//
+//    router.get('/topics/:id', function*() {
+//      const topic = yield db.getTopicById(this.params.id);
+//      this.assertAuthorized(this.currUser, 'READ_TOPIC', topic);
+//      ...
+//    });
+app.use(function*(next) {
+  this.assertAuthorized = (user, action, target) => {
+    const isAuthorized = cancan.can(user, action, target);
+    const uname = (user && user.uname) || '<Guest>';
+    debug('[assertAuthorized] Can %s %s: %s', uname, action, isAuthorized);
+    this.assert(isAuthorized, 404);
+  };
+  yield* next;
+});
+
+app.use(require('./routes').routes());
+app.use(require('./routes/authentication').routes());
+app.use(require('./routes/admin').routes());
+
+// If we run this file directly (npm start, npm run start-dev, node src/index.js)
+// then start the server. Else, if we require() this file (like from
+// our tests), then don't start the server and instead just export the app.
+if (require.main === module) {
+  app.listen(config.PORT, function() {
+    console.log('Listening on port', config.PORT);
+  });
+} else {
+  module.exports = app;
+}

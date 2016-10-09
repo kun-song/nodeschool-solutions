@@ -1,0 +1,69 @@
+{% extends 'master.html' %}
+
+{% block embed %}
+
+  <div class="page-header text-center">
+    <h1>创建账户</h1>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6 col-lg-offset-3">
+
+      <ul class="nav nav-tabs">
+        <li class="pull-right">
+          <a href="/login">登录</a>
+        </li>
+        <li class="active pull-right">
+          <a href="/register">注册</a>
+        </li>
+      </ul>
+
+      <form action="/users" method="POST">
+        <div class="panel panel-default" style="border-top: 0;">
+          <div class="panel-body">
+              <div class="form-group">
+                <label for="uname-input">用户名：</label>
+                <input type="text"
+                       name="uname"
+                       id="uname-input"
+                       class="form-control"
+                       required
+                       value={{ ctx.flash.params.uname or '' }}
+                >
+                <div class="help-block">
+                  <p class="pull-right" id="uname-counter">0/15</p>
+                  请使用真实姓名注册
+                  <br>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="password1-input">密码：</label>
+                <input type="password" name="password1" id="password1-input" class="form-control" required>
+                <div class="help-block">
+                  至少 6 个字符
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="password2-input">再次输入密码</label>
+                <input type="password" name="password2" id="password2-input" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label for="remember-me-input">
+                  <input type="checkbox" name="remember-me" id="remember-me-input" checked>
+                  记住密码？
+                </label>
+              </div>
+
+          </div>
+          <div class="panel-footer text-right">
+            <button type="submit" class="btn btn-danger disabled but-clickable" id="login-submit">确认注册</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+{% endblock %}

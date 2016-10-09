@@ -1,0 +1,112 @@
+{% extends 'master.html' %}
+{% import 'macros.html' as macros %}
+
+{% block embed %}
+
+  <div class="page-header">
+    <h1>
+      统计:
+      <small>
+        共 {{ usersCount }} 条信息
+      </small>
+    </h1>
+  </div>
+
+  <form action="/query" method="GET" class="form-inline text-center">
+    <div class="form-group">
+      <div class="input-group">
+            <input type="text"
+                   name="uname"
+                   id="uname-input"
+                   class="form-control"
+                   required
+                   placeholder="ip etc. 100.130.10.128">
+      </div>
+    </div>
+    <div class="form-group">
+      <button type="submit" class="btn btn-primary" id="login-submit">搜索</button>
+    </div>
+  </form>
+
+  {{ macros.renderPaginator(paginator) }}
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Device ip</th>
+        <th>OS</th>
+        <th>User</th>
+        <th>Password</th>
+        <th>Role</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+        <tr>
+          {# ip #}
+          <td>
+            <p>{{ user.uname }}</p>
+          </td>
+          {# os #}
+          <td>
+            {{ user.os }}
+          </td>
+          {# username #}
+          <td>
+            <p>
+              {{ user.username }}
+            </p>
+          </td>
+          {# password #}
+          <td>
+            <p>
+              {{ user.password }}
+            </p>
+          </td>
+          {# role #}
+          {% if can(ctx.currUser, 'UPDATE_USER_ROLE', user) %}
+            <td>
+              <form action="{{ user.url }}/role" method="POST">
+                <input type="hidden" name="_method" value="PUT">
+                <input type="hidden" name="redirectTo" value="/users">
+                <select name="role">
+                  {% for role in ['常规', '长稳', '自动化'] %}
+                  <option value="{{ role }}" {% if user.role == role %}selected{% endif %}>{{ role | capitalize }} {% if user.role == role %}&larr;{% endif %}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-xs btn-default">Save</button>
+              </form>
+            </td>
+          {% else %}
+            <td>
+              {% if user.role == '长稳' %}
+                <span class="label label-primary">
+                  {{ user.role | capitalize }}
+                </span>
+              {% elif user.role == '常规' %}
+                <span class="label label-info">
+                  {{ user.role | capitalize }}
+                </span>
+              {% elif user.role == '自动化' %}
+                <span class="label label-danger">
+                  {{ user.role | capitalize }}
+                </span>
+              {% else %}
+                {{ user.role | capitalize }}
+              {% endif %}
+            </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {{ macros.renderPaginator(paginator) }}
+
+{% endblock %}
+
+{% block scripts %}
+  <script type="text/javascript">
+
+  </script>
+{% endblock %}

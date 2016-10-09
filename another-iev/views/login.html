@@ -1,0 +1,55 @@
+{% extends 'master.html' %}
+
+{% block embed %}
+
+  <div class="page-header text-center">
+    <h1>登录 iEv</h1>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6 col-lg-offset-3">
+
+      <ul class="nav nav-tabs">
+        <li class="active pull-right">
+          <a href="/login">登录</a>
+        </li>
+        <li class="pull-right">
+          <a href="/register">注册</a>
+        </li>
+      </ul>
+
+      <form action="/login" method="POST">
+        <div class="panel panel-default" style="border-top: 0;">
+          <div class="panel-body">
+              <div class="form-group">
+                <label for="uname-input">用户名：</label>
+                <input type="text"
+                       name="uname"
+                       id="uname-input"
+                       class="form-control"
+                       required
+                       value={{ ctx.flash.params.uname or '' }}
+                >
+              </div>
+
+              <div class="form-group">
+                <label for="password-input">密码：</label>
+                <input type="password" name="password" id="password-input" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label for="remember-me-input">
+                  <input type="checkbox" name="remember-me" id="remember-me-input" checked>
+                  记住密码？
+                </label>
+              </div>
+          </div>
+          <div class="panel-footer text-right">
+            <button type="submit" class="btn btn-danger disabled but-clickable" id="login-submit">确认登录</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+{% endblock %}
