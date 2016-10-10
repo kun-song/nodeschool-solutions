@@ -39,10 +39,33 @@
  *    两个后果：
  *    (a) 一个简单的赋值操作，可能会错误创建全局变量，在第（5）步中。
  *    (b) 漏掉 var let，让原本的局部作用域变量，变成全局，导致所有函数都可以访问！
+ *
+ * 6. 闭包：是函数，其上下文包含函数体之外的变量。
  */
+
+/**
+  1. quux 定义在 zip 函数中，但是 foo 函数试图对其赋值，根据上面 5 中的算法，会在全局作用域
+    创建一个全局对象 global.quux，在 zip 中，局部 quux 会遮挡全局 quux，但在其他地方的函数
+    都会访问全局 quux.
+*/
+// function foo() {
+//   var bar;
+//   quux = 'foo';
+//   function zip() {
+//     var quux = 'zip';
+//   }
+// }
+
+/**
+  1. 最简单的闭包，close over the variable bar inside zip().
+  2. foo 函数返回 zip 函数，zip 中包含了外部的 bar 变量，zip 变成了一个闭包。
+*/
 function foo() {
   var bar;
+  quux = 'foo';
   function zip() {
-    var quux;
+    bar = true;
+    var quux = 'zip';
   }
+  return zip;
 }
